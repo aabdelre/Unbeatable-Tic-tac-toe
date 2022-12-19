@@ -70,6 +70,22 @@ class GameState():
 
     def available_moves(self):
         return False
+
+    def __str__(self):
+        res =  "    0   1   2  \n"
+        res += "  +---+---+---+\n"
+        for r in range(3):
+            res += "{} |".format(r)
+            for c in range(3):
+                col = self.board[r][c]
+                res += '   |' if col == 'E' else \
+                       ' X |' if col == 'X' else \
+                       ' O |'
+            res += '\n'
+            res += "  +---+---+---+\n"
+        res += "==== STATUS ====\n"
+        res += "Current Player: {}\n".format(self.current)
+        return res
     
 def main():
     #move = GameMove(1, 1, 'X')
@@ -78,6 +94,6 @@ def main():
                   ['E', 'X', 'X'],
                   ['X', 'O', 'E']]
     game = GameState(test_board)
-    #print(game.winner())
+    print(game)
 if __name__ == "__main__":
     main()
