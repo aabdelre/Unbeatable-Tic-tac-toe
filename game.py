@@ -1,4 +1,4 @@
-import numpy as np
+import copy, random, numpy as np
 
 def switch_truns(turn):
     """Returns the other color"""
@@ -74,7 +74,18 @@ class GameState():
             for c in range(3):
                 if self.board[r][c] == 'E':
                     protomoves.append((r, c))
-        return protomoves
+        return [GameMove(r, c, self.current) for r, c in protomoves]
+
+    def apply_move(self, move):
+        r, c = move.pair
+        assert r < 3 and c < 3 and c >= 0 and r >= 0 and self.current == move.player
+        assert self.board[r][c] == 'E'
+
+        new_state = copy.deepcopy(self)
+        new_state.board[r][c] = move.player
+        new_state.current = switch_truns(self.current)
+        new_state.move_number += 1
+        return new_state
 
     def __str__(self):
         res =  "    0   1   2  \n"
@@ -100,6 +111,11 @@ def main():
                   ['X', 'O', 'E']]
     game = GameState(test_board)
     print(game)
-    print(game.winner())
+    move = random.choice(game.available_moves())
+    print(move)
+    game = game.apply_move(move)
+    print(game)
+    #print(game.winner())
+
 if __name__ == "__main__":
     main()
