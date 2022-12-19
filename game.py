@@ -35,7 +35,7 @@ class GameState():
                     return False
         return True
     
-    def check_rows(self, board):
+    def check_rows(self, board : list):
         """Takes board as a parameter since it is being transposed and stored board
         should not change."""
         for row in board:
@@ -69,7 +69,12 @@ class GameState():
         return 'draw' if result == 'd' else 'X' if result == 'X' else 'O'
 
     def available_moves(self):
-        return False
+        protomoves = []
+        for r in range(3):
+            for c in range(3):
+                if self.board[r][c] == 'E':
+                    protomoves.append((r, c))
+        return protomoves
 
     def __str__(self):
         res =  "    0   1   2  \n"
@@ -90,10 +95,11 @@ class GameState():
 def main():
     #move = GameMove(1, 1, 'X')
     #print(move)
-    test_board = [['E', 'X', 'X'],
-                  ['E', 'X', 'X'],
+    test_board = [['X', 'X', 'X'],
+                  ['E', 'O', 'X'],
                   ['X', 'O', 'E']]
     game = GameState(test_board)
     print(game)
+    print(game.winner())
 if __name__ == "__main__":
     main()
