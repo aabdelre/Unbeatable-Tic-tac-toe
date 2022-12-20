@@ -1,7 +1,7 @@
+"""Observations: pretty hard to get a draw if two random players are matched up."""
 import copy, time, random, numpy as np
 
 def switch_truns(turn):
-    """Returns the other color"""
     assert turn in ['X', 'O']
     return 'X' if turn == 'O' else 'O'
 
@@ -107,7 +107,7 @@ class TicTacToeGame():
 
     SECONDS_PER_PLAYER = 15.0
 
-    def __init__(self, x, o, x_name = "X", o_name = "O", verbose = True, lose_when_out_of_time=False):
+    def __init__(self, x, o, x_name = "X", o_name = "O", verbose = True, lose_when_out_of_time = False):
         self.x_player = x
         self.o_player = o
         self.verbose = verbose
@@ -176,21 +176,30 @@ class TicTacToeGame():
         self.log("Winner is", self.board.winner())
         return self.board.winner()
 
-
+class RandomPlayer():
+    def __init__(self, turn):
+        assert turn in ['X', 'O']
+        self.turn = turn
+    
+    def __str__(self):
+        return "Random Player"
+    
+    def make_move(self, state, remaining_time):
+        available = state.available_moves()
+        return random.choice(available)   
 
 def main():
     #move = GameMove(1, 1, 'X')
     #print(move)
-    test_board = [['X', 'X', 'X'],
-                  ['E', 'O', 'X'],
-                  ['X', 'O', 'E']]
-    game = GameState(test_board)
-    print(game)
-    move = random.choice(game.available_moves())
-    print(move)
-    game = game.apply_move(move)
-    print(game)
-    #print(game.winner())
+    #test_board = [['X', 'X', 'X'],
+    #              ['E', 'O', 'X'],
+    #              ['X', 'O', 'E']]
+    game = TicTacToeGame(RandomPlayer('X'), RandomPlayer('O'),
+                        x_name = "Random X", o_name = "Random O",
+                        verbose = True,
+                        lose_when_out_of_time = True)
+    
+    winner = game.play_game()
 
 if __name__ == "__main__":
     main()
