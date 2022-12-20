@@ -1,4 +1,4 @@
-import copy, random, numpy as np
+import copy, time, random, numpy as np
 
 def switch_truns(turn):
     """Returns the other color"""
@@ -23,8 +23,8 @@ class GameMove():
         return hash(self.__str__()) # Not sure if this how to do it yet
 
 class GameState():
-    def __init__(self, test_board = [['E'] * 3 for _ in range(3)]):
-        self.board = test_board #[['E'] * 3 for _ in range(3)]
+    def __init__(self, default_board = [['E'] * 3 for _ in range(3)]):
+        self.board = default_board
         self.current = 'X'
         self.move_number = 0
 
@@ -103,6 +103,81 @@ class GameState():
         res += "Current Player: {}\n".format(self.current)
         return res
     
+class TicTacToeGame():
+
+    SECONDS_PER_PLAYER = 15.0
+
+    def __init__(self, x, o, x_name = "X", o_name = "O", verbose = True, lose_when_out_of_time=False):
+        self.x_player = x
+        self.o_player = o
+        self.verbose = verbose
+
+        self.x_name = x_name
+        self.o_name = o_name
+
+        self.x_time = TicTacToeGame.SECONDS_PER_PLAYER
+        self.o_time = TicTacToeGame.SECONDS_PER_PLAYER
+
+        self.lose_when_out_of_time = lose_when_out_of_time
+        self.board = GameState()
+
+    def log(self, *args):
+        if self.verbose:
+            print(*args)
+
+    def log_state(self):
+        self.log(self.board)
+        self.log("X Agent:", self.x_name)
+        self.log("O Agent:", self.o_name)
+        self.log("X Time: {:0.2f}".format(self.x_time))
+        self.log("O Time: {:0.2f}".format(self.o_time))
+        self.log("====================================")
+
+    def play_game(self):
+
+        self.log("_" * 40)
+        self.log("X Agent:", self.x_name)
+        self.log("O Agent:", self.o_name)
+        self.log("_" * 40)
+        self.log_state()
+
+        while not self.board.game_over():
+            if self.board.current == 'X':
+                player = self.x_player
+                time_left = self.x_time
+            else:
+                player = self.o_player
+                time_left = self.o_time
+        
+            start_time = time.time()
+            move = player.make_move(self.board, time_left) ### Need to implement a player class
+
+            end_time = time.time()
+            move_time = end_time - start_time
+
+            if self.board.current == 'X':
+                self.x_time -= move_time
+            else:
+                self.o_time -= move_time
+
+            if self.lose_when_out_of_time and (self.x_time < 0 or self.o_time < 0):
+                self.log("\n{}. {}".format(self.board.move_number, move))
+                self.log_state()
+
+                self.log("{} timed out!".format(self.board.current))
+                self.log("Winner is", switch_truns(self.board.current))
+
+                return switch_truns(self.board.current)[0] + "time"
+        
+            self.board = self.board.apply_move(move)
+            self.log("\n{}. {}".format(self.board.move_number, move))
+            self.log_state()
+
+        self.log("Winner is", self.board.winner())
+        return self.board.winner()
+
+
+
 def main():
     #move = GameMove(1, 1, 'X')
     #print(move)
