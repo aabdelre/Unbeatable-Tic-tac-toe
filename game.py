@@ -105,7 +105,7 @@ class GameState():
     
 class TicTacToeGame():
 
-    SECONDS_PER_PLAYER = 15.0
+    SECONDS_PER_PLAYER = 30.0
 
     def __init__(self, x, o, x_name = "X", o_name = "O", verbose = True, lose_when_out_of_time = False):
         self.x_player = x
@@ -188,13 +188,33 @@ class RandomPlayer():
         available = state.available_moves()
         return random.choice(available)   
 
+class HumanPlayer():
+    def __init__(self, turn):
+        assert turn in ['X', 'O']
+        self.turn = turn
+
+    def __str__(self):
+        return "Human Player"
+
+    def make_move(self, state, remaining_time):
+        available = state.available_moves()
+        print("----- {}'s turn -----".format(state.current))
+        print("Remaining time: {:0.2f}".format(remaining_time))
+        print("Available Moves are:", available)
+        move = input("What's your move in 'r, c': ").split(',')
+        move = GameMove(int(move[0]), int(move[1]), state.current)
+        if move in available:
+            return move
+
+
+
 def main():
     #move = GameMove(1, 1, 'X')
     #print(move)
     #test_board = [['X', 'X', 'X'],
     #              ['E', 'O', 'X'],
     #              ['X', 'O', 'E']]
-    game = TicTacToeGame(RandomPlayer('X'), RandomPlayer('O'),
+    game = TicTacToeGame(RandomPlayer('X'), HumanPlayer('O'),
                         x_name = "Random X", o_name = "Random O",
                         verbose = True,
                         lose_when_out_of_time = True)
