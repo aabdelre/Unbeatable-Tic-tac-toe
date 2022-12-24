@@ -1,4 +1,5 @@
-"""Observations: pretty hard to get a draw if two random players are matched up."""
+"""Observations: pretty hard to get a draw if two random players are matched up.
+Starting in a corner leads to a win!"""
 import copy, time, random, sys, numpy as np
 
 def switch_truns(turn):
@@ -62,6 +63,9 @@ class GameState():
         
     def game_over(self):
         return self.available_moves() == [] or self.evaluate() != 'n'
+
+    def board_empty(self):
+        return len(self.available_moves()) == 9
 
     def winner(self):
         assert self.game_over()
@@ -216,34 +220,53 @@ class SearchNode():
         return self.game_state.game_over()
 
     def utility(self, turn):
-        value = 0
-        turn_incrementer = 1
-        opp_turn_incrementer = 1
-        for row in self.game_state.board:
-            for entry in row:
-                turn_incrementer *= 10 if entry == turn else turn_incrementer
-                opp_turn_incrementer *= 10 if entry == turn else opp_turn_incrementer
+        if self.game_state.game_over() and self.game_state.winner() == turn:
+            return sys.maxsize
+        elif self.game_state.game_over() and self.game_state.winner() == switch_truns(turn):
+            return -sys.maxsize
+        elif self.game_state.game_over() and self.game_state.winner() == 'd':
+            return 1000 ### prefer draw over a lose?
+        else:
+            value = 0
+            ### 3 Rows
             turn_incrementer = 1
             opp_turn_incrementer = 1
+            for row in self.game_state.board:
+                for entry in row:
+                    turn_incrementer *= 10 if entry == turn else turn_incrementer
+                    opp_turn_incrementer *= 10 if entry == turn else opp_turn_incrementer
+                turn_incrementer = 1
+                opp_turn_incrementer = 1
+                value += turn_incrementer - opp_turn_incrementer
+            ### 3 Columns
+            transposed_board = np.transpose(self.game_state.board)
+            turn_incrementer = 1
+            opp_turn_incrementer = 1
+            for row in transposed_board:
+                for entry in row:
+                    turn_incrementer *= 10 if entry == turn else turn_incrementer
+                    opp_turn_incrementer *= 10 if entry == turn else opp_turn_incrementer
+                turn_incrementer = 1
+                opp_turn_incrementer = 1
+                value += turn_incrementer - opp_turn_incrementer
+            ### Main Diagonal
+            turn_incrementer = 1
+            opp_turn_incrementer = 1
+            diagonal = [self.game_state.board[i][i] for i in range(len(self.game_state.board))]
+            for entry in diagonal:
+                turn_incrementer *= 10 if entry == turn else turn_incrementer
+                opp_turn_incrementer *= 10 if entry == turn else opp_turn_incrementer
             value += turn_incrementer - opp_turn_incrementer
-
-        turn_incrementer = 1
-        opp_turn_incrementer = 1
-        diagonal = [self.game_state.board[i][i] for i in range(len(self.game_state.board))]
-        for entry in diagonal:
-            turn_incrementer *= 10 if entry == turn else turn_incrementer
-            opp_turn_incrementer *= 10 if entry == turn else opp_turn_incrementer
-        value += turn_incrementer - opp_turn_incrementer
-
-        turn_incrementer = 1
-        opp_turn_incrementer = 1
-        rev_diagonal = [self.game_state.board[i][len(self.game_state.board) - i - 1] for i in range(len(self.game_state.board))]
-        for entry in rev_diagonal:
-            turn_incrementer *= 10 if entry == turn else turn_incrementer
-            opp_turn_incrementer *= 10 if entry == turn else opp_turn_incrementer
-        value += turn_incrementer - opp_turn_incrementer
-        return value
-    
+            # Reverse Diagonal
+            turn_incrementer = 1
+            opp_turn_incrementer = 1
+            rev_diagonal = [self.game_state.board[i][len(self.game_state.board) - i - 1] for i in range(len(self.game_state.board))]
+            for entry in rev_diagonal:
+                turn_incrementer *= 10 if entry == turn else turn_incrementer
+                opp_turn_incrementer *= 10 if entry == turn else opp_turn_incrementer
+            value += turn_incrementer - opp_turn_incrementer
+            return value
+        
 class MinMaxPlayer():
     def __init__(self, turn):
         assert turn in ["X", "O"]
@@ -254,9 +277,12 @@ class MinMaxPlayer():
 
     def make_move(self, state, remaining_time):
         node = SearchNode(state, 0, (None, None))
-        return self.minimax(node, 7, node.game_state.current)[1]
+        return self.minimax(node, 9, node.game_state.current)[1]
     
     def minimax(self, node, depth, player):
+        if node.game_state.board_empty() and self.turn == 'X':
+            return (1000, GameMove(2, 2, self.turn)) ### Start from a corner!
+    
         if depth == 0 or node.is_terminal():
             return (node.utility(self.turn), None)
 
@@ -282,7 +308,7 @@ def main():
     #test_board = [['X', 'X', 'X'],
     #              ['E', 'O', 'X'],
     #              ['X', 'O', 'E']]
-    game = TicTacToeGame(RandomPlayer('X'), MinMaxPlayer('O'),
+    game = TicTacToeGame(MinMaxPlayer('X'), HumanPlayer('O'),
                         x_name = "Random X", o_name = "Random O",
                         verbose = True,
                         lose_when_out_of_time = True)
