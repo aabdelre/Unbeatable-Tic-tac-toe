@@ -1,4 +1,11 @@
+import random, sys, pygame
 from game import *
+
+pygame.init()
+WIDTH, HEIGHT = 600, 600
+SIZE = (WIDTH, HEIGHT)
+BG_COLOR = (20, 170, 156)
+WHITE = (255, 255, 255)
 
 class RandomPlayer():
     def __init__(self, turn):
@@ -139,16 +146,43 @@ class MinMaxPlayer():
                     best = (eval, move)
             return best
 
+def draw_board(screen):
+    tile_size = WIDTH / 3
+    tile_origin = (0, 0)
+    tiles = []
+    for i in range(3):
+        row = []
+        for j in range(3):
+            rect = pygame.Rect(
+                tile_origin[0] + j * tile_size,
+                tile_origin[1] + i * tile_size,
+                tile_size, tile_size
+            )
+            pygame.draw.rect(screen, WHITE, rect, 3)
+
+
 def main():
     player1, player2 = sys.argv[1], sys.argv[2]
-    print(player1, player2)
     player1 = MinMaxPlayer('X') if player1 == 'm' else HumanPlayer('X') if player1 == 'h' else RandomPlayer('X')
     player2 = MinMaxPlayer('O') if player2 == 'm' else HumanPlayer('O') if player2 == 'h' else RandomPlayer('O')
     game = TicTacToeGame(player1, player2,
                         x_name = str(player1), o_name = str(player2),
-                        verbose = True,
+                        verbose = False,
                         lose_when_out_of_time = False)
 
+    screen = pygame.display.set_mode(SIZE)
+    screen.fill(BG_COLOR)
+    pygame.display.set_caption("TIC-TAC-TOE")
+    mediumFont = pygame.font.Font(None, 28)
+    largeFont = pygame.font.Font(None, 40)
+    moveFont = pygame.font.Font(None, 60)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+        pygame.display.update()
+        draw_board(screen)
     winner = game.play_game()
     print(winner)
 

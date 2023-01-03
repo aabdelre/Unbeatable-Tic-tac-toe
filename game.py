@@ -1,6 +1,6 @@
 """Observations: pretty hard to get a draw if two random players are matched up.
 Starting in a corner leads to a win!"""
-import copy, time, random, sys, numpy as np
+import copy, time, numpy as np
 
 def switch_truns(turn):
     assert turn in ['X', 'O']
