@@ -111,7 +111,7 @@ class GameState():
     
 class TicTacToeGame():
 
-    SECONDS_PER_PLAYER = 30.0
+    SECONDS_PER_PLAYER = 50.0
 
     def __init__(self, x, o, x_name = 'X', o_name = 'O', verbose = True, lose_when_out_of_time = False):
         self.x_player = x
@@ -230,12 +230,12 @@ class SearchNode():
             return 0
 
     def utility(self, turn):
-        if self.game_state.game_over() and self.game_state.winner() == turn:
-            return sys.maxsize - 1
-        elif self.game_state.game_over() and self.game_state.winner() == switch_truns(turn):
-            return 1 - sys.maxsize
-        elif self.game_state.game_over() and self.game_state.winner() == 'd':
-            return 1000 ### prefer draw over a lose?
+        if self.game_state.winner() == turn:
+            return sys.maxsize
+        elif self.game_state.winner() == switch_truns(turn):
+            return -sys.maxsize
+        elif self.game_state.winner() == 'd':
+            return 0
         else:
             value = 0
             ### 3 Rows
