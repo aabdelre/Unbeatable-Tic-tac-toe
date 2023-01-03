@@ -322,22 +322,17 @@ class MinMaxPlayer():
             return best
 
 def main():
-    #move = GameMove(1, 1, 'X')
-    #print(move)
-    #test_board = [['X', 'X', 'X'],
-    #              ['E', 'O', 'X'],
-    #              ['X', 'O', 'E']]
-    Winners = {'X':0, 'O':0, 'draw':0}
-    for i in range(1000):
-        print("Game:", i)
-        game = TicTacToeGame(RandomPlayer('X'), MinMaxPlayer('O'),
-                            x_name = "Random X", o_name = "Minimax O",
-                            verbose = False,
-                            lose_when_out_of_time = False)
-    
-        winner = game.play_game()
-        Winners[winner] += 1
-    print(Winners)
+    player1, player2 = sys.argv[1], sys.argv[2]
+    print(player1, player2)
+    player1 = MinMaxPlayer('X') if player1 == 'm' else HumanPlayer('X') if player1 == 'h' else RandomPlayer('X')
+    player2 = MinMaxPlayer('O') if player2 == 'm' else HumanPlayer('O') if player2 == 'h' else RandomPlayer('O')
+    game = TicTacToeGame(player1, player2,
+                        x_name = str(player1), o_name = str(player2),
+                        verbose = True,
+                        lose_when_out_of_time = False)
+
+    winner = game.play_game()
+    print(winner)
 
 if __name__ == "__main__":
     main()
