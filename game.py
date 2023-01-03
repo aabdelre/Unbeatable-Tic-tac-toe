@@ -288,8 +288,8 @@ class MinMaxPlayer():
     def make_move(self, state, remaining_time):
         node = SearchNode(state, 0, None)
         best = self.minimax(node, 9, node.game_state.current)
-        print(best)
-        best[1].player = state.current
+        #print(best)
+        #best[1].player = state.current
         return best[1]
     
     def minimax(self, node, depth, player):
@@ -327,12 +327,17 @@ def main():
     #test_board = [['X', 'X', 'X'],
     #              ['E', 'O', 'X'],
     #              ['X', 'O', 'E']]
-    game = TicTacToeGame(HumanPlayer('X'), MinMaxPlayer('O'),
-                        x_name = "Random X", o_name = "Minimax O",
-                        verbose = True,
-                        lose_when_out_of_time = False)
+    Winners = {'X':0, 'O':0, 'draw':0}
+    for i in range(1000):
+        print("Game:", i)
+        game = TicTacToeGame(RandomPlayer('X'), MinMaxPlayer('O'),
+                            x_name = "Random X", o_name = "Minimax O",
+                            verbose = False,
+                            lose_when_out_of_time = False)
     
-    winner = game.play_game()
+        winner = game.play_game()
+        Winners[winner] += 1
+    print(Winners)
 
 if __name__ == "__main__":
     main()
