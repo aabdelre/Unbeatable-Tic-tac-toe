@@ -1,6 +1,12 @@
 """Observations: pretty hard to get a draw if two random players are matched up.
 Starting in a corner leads to a win!"""
-import copy, time, numpy as np
+import copy, time, pygame, sys, numpy as np
+
+WIDTH, HEIGHT = 600, 600
+SIZE = (WIDTH, HEIGHT)
+SQ_SIZE = WIDTH // 3
+BG_COLOR = (20, 170, 156)
+WHITE = (255, 255, 255)
 
 def switch_truns(turn):
     assert turn in ['X', 'O']
@@ -37,6 +43,9 @@ class GameState():
                     return False
         return True
     
+    def empty_sq(self, row, col):
+        return self.board[row][col] == 'E'
+
     def check_rows(self, board : list):
         """Takes board as a parameter since it is being transposed and stored board
         should not change."""
@@ -113,7 +122,7 @@ class TicTacToeGame():
 
     SECONDS_PER_PLAYER = 50.0
 
-    def __init__(self, x, o, x_name = 'X', o_name = 'O', verbose = True, lose_when_out_of_time = False):
+    def __init__(self, x, o, screen, x_name = 'X', o_name = 'O', verbose = True, lose_when_out_of_time = False):
         self.x_player = x
         self.o_player = o
         self.verbose = verbose
@@ -126,11 +135,35 @@ class TicTacToeGame():
 
         self.lose_when_out_of_time = lose_when_out_of_time
         self.board = GameState()
+        self.screen = screen
 
     def log(self, *args):
         if self.verbose:
             print(*args)
 
+    def draw_board(self, screen):
+        tile_size = WIDTH / 3
+        tile_origin = (0, 0)
+        tiles = []
+        moveFont = pygame.font.Font(None, 60) #what is this doing?
+        for i in range(3):
+            row = []
+            for j in range(3):
+                rect = pygame.Rect(
+                    tile_origin[0] + j * tile_size,
+                    tile_origin[1] + i * tile_size,
+                    tile_size, tile_size
+                )
+                pygame.draw.rect(self.screen, WHITE, rect, 3)
+
+                if self.board.board[i][j] != 'E':
+                    move = moveFont.render(self.board.board[i][j], True, WHITE) #what is this doin?
+                    moveRect = move.get_rect()
+                    moveRect.center = rect.center
+                    screen.blit(move, moveRect)
+                row.append(rect)
+            tiles.append(row)
+    
     def log_state(self):
         self.log(self.board)
         self.log("X Agent:", self.x_name)
@@ -147,37 +180,60 @@ class TicTacToeGame():
         self.log("_" * 40)
         self.log_state()
 
-        while not self.board.game_over():
+        while True:
+            user_click = None
+
             if self.board.current == 'X':
                 player = self.x_player
                 time_left = self.x_time
             else:
                 player = self.o_player
                 time_left = self.o_time
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    row, col = event.pos
+                    row, col = col, row
+                    row //= SQ_SIZE
+                    col //= SQ_SIZE
+                    if self.board.empty_sq(row, col):
+                        user_click = (row, col)
+                        
+            self.draw_board(self.screen)
+            pygame.display.update()
         
             start_time = time.time()
-            move = player.make_move(self.board, time_left) ### Need to implement a player class
+            if user_click != None or str(player) != "Human Player":
+                move = player.make_move(self.board, time_left, user_click) ### Need to implement a player class
 
-            end_time = time.time()
-            move_time = end_time - start_time
+                end_time = time.time()
+                move_time = end_time - start_time
 
-            if self.board.current == 'X':
-                self.x_time -= move_time
-            else:
-                self.o_time -= move_time
+                if self.board.current == 'X':
+                    self.x_time -= move_time
+                else:
+                    self.o_time -= move_time
 
-            if self.lose_when_out_of_time and (self.x_time < 0 or self.o_time < 0):
+                if self.lose_when_out_of_time and (self.x_time < 0 or self.o_time < 0):
+                    self.log("\n{}. {}".format(self.board.move_number, move))
+                    self.log_state()
+
+                    self.log("{} timed out!".format(self.board.current))
+                    self.log("Winner is", switch_truns(self.board.current))
+
+                    return switch_truns(self.board.current)[0] + "time"
+            
+                self.board = self.board.apply_move(move)
                 self.log("\n{}. {}".format(self.board.move_number, move))
                 self.log_state()
 
-                self.log("{} timed out!".format(self.board.current))
-                self.log("Winner is", switch_truns(self.board.current))
-
-                return switch_truns(self.board.current)[0] + "time"
+            if self.board.game_over():
+                self.draw_board(self.screen)
+                pygame.display.update()
+                break
         
-            self.board = self.board.apply_move(move)
-            self.log("\n{}. {}".format(self.board.move_number, move))
-            self.log_state()
-
         self.log("Winner is", self.board.winner())
+        time.sleep(2)
         return self.board.winner()
