@@ -6,8 +6,14 @@ An AI script using Minimax algorithm to play Tic-Tac-Toe. The Minimax agent is g
 To deploy this project run
 
 ```bash
-  python game.py arg1 arg2
+  python run.py arg1 arg2
 ```
 where arg1 represents the X player and arg2 represents the O player.
 To choose a human player, type in 'h'. To choose a minimax player,
-type in 'm'. To choose a random player, type in any character.
+type in 'm'. To choose a random player, type in any character. As
+an example, 
+
+```bash
+python run.py h m 
+```
+initiates a game where X is a human player and O is a minimax player.
