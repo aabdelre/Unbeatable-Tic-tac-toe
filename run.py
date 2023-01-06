@@ -152,17 +152,15 @@ def main():
     screen = pygame.display.set_mode(SIZE)
     screen.fill(BG_COLOR)
     pygame.display.set_caption("TIC-TAC-TOE")
+    img = pygame.image.load('tic-tac-toe.png')
+    pygame.display.set_icon(img)
 
     game = TicTacToeGame(player1, player2, screen,
                         x_name = str(player1), o_name = str(player2),
                         verbose = True,
                         lose_when_out_of_time = False)
 
-    
-    mediumFont = pygame.font.Font(None, 28)
-    largeFont = pygame.font.Font(None, 40)
-
-    winner = game.play_game()
+    game.play_game()
     
 if __name__ == "__main__":
     main()

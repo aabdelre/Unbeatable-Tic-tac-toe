@@ -1,11 +1,13 @@
-"""Observations: pretty hard to get a draw if two random players are matched up.
-Starting in a corner leads to a win!"""
 import copy, time, pygame, sys, numpy as np
 
 WIDTH, HEIGHT = 600, 600
 SIZE = (WIDTH, HEIGHT)
+LINE_WIDTH = 8
 SQ_SIZE = WIDTH // 3
 BG_COLOR = (20, 170, 156)
+LINE_COLOR = (23, 145, 135)
+X_COLOR = (66, 66, 66)
+O_COLOR = (239, 231, 200)
 WHITE = (255, 255, 255)
 
 def switch_truns(turn):
@@ -27,7 +29,7 @@ class GameMove():
         return self.pair == other.pair and self.player == other.player
     
     def __hash__(self):
-        return hash(self.__str__()) # Not sure if this how to do it yet
+        return hash(self.__str__())
 
 class GameState():
     def __init__(self, current = 'X', default_board = [['E'] * 3 for _ in range(3)]):
@@ -65,9 +67,8 @@ class GameState():
         """d = draw, X = X won, Y = Y won, n = no one won yet"""
         for board in [self.board, np.transpose(self.board)]:
             result = self.check_rows(board)
-            if result and result != 'E':
+            if result:
                 return result
-        #print("It's a diagonal win!")
         result = self.check_digonal()
         return result if result else 'd' if self.full_board() else 'n'
         
@@ -92,7 +93,6 @@ class GameState():
 
     def apply_move(self, move):
         r, c = move.pair
-        #print(self.current, move.player)
         assert r < 3 and c < 3 and c >= 0 and r >= 0 and self.current == move.player
         assert self.board[r][c] == 'E'
 
@@ -145,7 +145,7 @@ class TicTacToeGame():
         tile_size = WIDTH / 3
         tile_origin = (0, 0)
         tiles = []
-        moveFont = pygame.font.Font(None, 60) #what is this doing?
+        moveFont = pygame.font.Font(None, 60)
         for i in range(3):
             row = []
             for j in range(3):
@@ -154,16 +154,51 @@ class TicTacToeGame():
                     tile_origin[1] + i * tile_size,
                     tile_size, tile_size
                 )
-                pygame.draw.rect(self.screen, WHITE, rect, 3)
+                pygame.draw.rect(self.screen, LINE_COLOR, rect, 3)
 
                 if self.board.board[i][j] != 'E':
-                    move = moveFont.render(self.board.board[i][j], True, WHITE) #what is this doin?
+                    color = X_COLOR if self.board.board[i][j] == 'X' else O_COLOR
+                    move = moveFont.render(self.board.board[i][j], True, color)
                     moveRect = move.get_rect()
                     moveRect.center = rect.center
                     screen.blit(move, moveRect)
                 row.append(rect)
             tiles.append(row)
     
+    def show_wins(self, screen):
+        ### Horixontal wins
+        for row in range(3):
+            if self.board.board[row][0] == self.board.board[row][1] == self.board.board[row][2] != 'E':
+                color = X_COLOR if self.board.board[row][0] == 'X' else O_COLOR
+                iPos = (20, row * SQ_SIZE + SQ_SIZE // 2)
+                fPos = (WIDTH - 20, row * SQ_SIZE + SQ_SIZE // 2)
+                pygame.draw.line(screen, color, iPos, fPos, LINE_WIDTH)
+        
+        ### Vertical wins
+        for col in range(3):
+            if self.board.board[0][col] == self.board.board[1][col] == self.board.board[2][col] != 'E':
+                color = X_COLOR if self.board.board[0][col] == 'X' else O_COLOR
+                iPos = (col * SQ_SIZE + SQ_SIZE // 2, 20)
+                fPos = (col * SQ_SIZE + SQ_SIZE // 2, HEIGHT - 20)
+                pygame.draw.line(screen, color, iPos, fPos, LINE_WIDTH)
+        
+        ### Main diagonal
+        if self.board.board[0][0] == self.board.board[1][1] == self.board.board[2][2] != 'E':
+            color = X_COLOR if self.board.board[0][0] == 'X' else O_COLOR
+            iPos = (20, 20)
+            fPos = (WIDTH - 20, HEIGHT - 20)
+            pygame.draw.line(screen, color, iPos, fPos, LINE_WIDTH)
+
+        ### Reverse diagonal
+        if self.board.board[2][0] == self.board.board[1][1] == self.board.board[0][2] != 'E':
+            color = X_COLOR if self.board.board[2][0] == 'X' else O_COLOR
+            iPos = (20, HEIGHT - 20)
+            fPos = (WIDTH - 20, 20)
+            pygame.draw.line(screen, color, iPos, fPos, LINE_WIDTH)
+
+        self.draw_board(self.screen)
+        pygame.display.update()
+
     def log_state(self):
         self.log(self.board)
         self.log("X Agent:", self.x_name)
@@ -231,9 +266,12 @@ class TicTacToeGame():
 
             if self.board.game_over():
                 self.draw_board(self.screen)
+                self.show_wins(self.screen)
                 pygame.display.update()
                 break
-        
-        self.log("Winner is", self.board.winner())
+
+        winner = self.board.winner() 
+        res = "Winner is " + winner + '!' if winner != 'draw' else "It's a Tie!"
+        self.log(res)
         time.sleep(2)
         return self.board.winner()
